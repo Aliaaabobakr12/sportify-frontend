@@ -1,13 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
-import Navbar from "../components/Navbar";
+import { useNavigate } from "react-router-dom";
 import { MapPin, ChevronDown, CalendarDays, ChevronUp } from "lucide-react";
 import { PiCourtBasketball } from "react-icons/pi";
-import { MoveRight } from "lucide-react";
-import Section_1 from "../components/Section_1";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { useNavigate } from "react-router-dom";
 import useDateStore from "../store/date.store";
+import Navbar from "../components/Navbar";
+import Section_1 from "../components/Section_1";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -67,6 +66,10 @@ export default function Home() {
   const courts = ["Football", "Basketball", "Tennis", "Padel"];
 
   const getCourtsByQueries = () => {
+    // if (!selectedLocation || !selectedCourt || !selectedTime) {
+    //   alert("Please fill all fields");
+    //   return;
+    // }
     navigate(
       `/courts?location=${selectedLocation.toLowerCase()}&type=${selectedCourt.toLowerCase()}`
     );
@@ -124,7 +127,7 @@ export default function Home() {
 
   return (
     <div className="bg-gradient-to-r gradient-angle from-[#171717] to-[#2c2c2c] min-h-screen items-center flex flex-col z-0">
-      <Navbar color={"#1A1A1A"} />
+      <Navbar />
       <div className="flex flex-nowrap relative">
         <img
           src="/football_court.jpg"
@@ -302,10 +305,10 @@ export default function Home() {
 
           {/* Search button */}
           <button
-            className="flex items-center gap-3 bg-[#27c6a9] text-white px-2 py-1 rounded-md hover:bg-[#55dcbe] transition-all duration-300"
+            className="flex items-center justify-center gap-3 bg-[#27c6a9] text-white px-3.5 py-1.5 rounded-md hover:bg-[#55dcbe] transition-all duration-300"
             onClick={getCourtsByQueries}
           >
-            Search <MoveRight />
+            Search
           </button>
         </div>
       </div>

@@ -1,8 +1,6 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import {React, useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import FloatingInput from "../components/FloatingInput";
 
 export default function Register() {
@@ -19,6 +17,7 @@ export default function Register() {
   });
 
   const handleChange = (e) => {
+    // مش فاهمة
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
@@ -33,7 +32,7 @@ export default function Register() {
       .then((response) => {
         console.log("Success:", response.data);
         localStorage.setItem("token", response.data.token);
-        navigate("/home");
+        navigate("/");
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -57,17 +56,49 @@ export default function Register() {
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col w-[500px] gap-5">
           <div className="flex gap-2">
-            <FloatingInput placeholder={"First name"} label={"First name"} />
-            <FloatingInput placeholder={"Last name"} label={"Last name"} />
+            <FloatingInput
+              onChange={handleChange}
+              name={"first_name"}
+              placeholder={"First name"}
+              label={"First name"}
+            />
+            <FloatingInput
+              onChange={handleChange}
+              name={"last_name"}
+              placeholder={"Last name"}
+              label={"Last name"}
+            />
           </div>
-          <FloatingInput placeholder={"Email"} label={"Email"} />
-          <FloatingInput placeholder={"Password"} label={"Password"} />
           <FloatingInput
+            onChange={handleChange}
+            name={"email"}
+            placeholder={"Email"}
+            label={"Email"}
+          />
+          <FloatingInput
+            onChange={handleChange}
+            name={"password"}
+            placeholder={"Password"}
+            label={"Password"}
+          />
+          <FloatingInput
+            onChange={handleChange}
+            name={"confirm_password"}
             placeholder={"Confirm password"}
             label={"Confirm password"}
           />
-          <FloatingInput placeholder={"Phone number"} label={"Phone number"} />
-          <FloatingInput placeholder={"Address"} label={"Address"} />
+          <FloatingInput
+            onChange={handleChange}
+            name={"phone"}
+            placeholder={"Phone number"}
+            label={"Phone number"}
+          />
+          <FloatingInput
+            onChange={handleChange}
+            name={"address"}
+            placeholder={"Address"}
+            label={"Address"}
+          />
           <button
             type="submit"
             className="bg-[#27c6a9] text-white p-2 rounded-md hover:bg-[#55dcbe] transition-all duration-300"

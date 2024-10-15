@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
 import FloatingInput from "../components/FloatingInput";
 
 export default function Login() {
@@ -35,7 +34,7 @@ export default function Login() {
       navigate("/");
     }
   }, []);
-  
+
   return (
     <div className="h-screen flex flex-col justify-center items-center gap-8 bg-[#171717]">
       <img src="/logo.png" alt="logo" className="h-24 w-24" />
@@ -68,8 +67,8 @@ export default function Login() {
           Login
         </button>
         <div className="flex self-center gap-1">
-          <p className="text-sm text-white">Don't have an account?</p>
-          <Link to="/" className="text-sm underline text-[#27c6a9]">
+          <p className="text-sm text-white">{"Don't have an account?"}</p>
+          <Link to="/register" className="text-sm underline text-[#27c6a9]">
             Register here
           </Link>
         </div>

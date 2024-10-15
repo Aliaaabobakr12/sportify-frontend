@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+/*Date picker*/
+
 .custom-date-picker {
   color: #ffffff;
   background-color: #2c2c2c;
@@ -44,4 +46,29 @@
 
 .custom-datepicker::placeholder {
   color: white;
+}
+
+.react-datepicker__current-month {
+  color: white; /* Change the month text color */
+}
+
+/*Button spins*/
+
+@keyframes half-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(90deg);
+  }
+}
+
+.spin-on-hover:hover {
+  animation: half-spin 0.25s linear;
+}
+
+/*Blur*/
+
+.blur-sm {
+  filter: blur(2px);
 }

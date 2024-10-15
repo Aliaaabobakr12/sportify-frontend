@@ -128,12 +128,6 @@ function Form({ court_id, price }) {
             value={formData.with_tools}
           />
         </div>
-        <button
-          type="submit"
-          className="bg-[#27c6a9] text-white p-2 rounded-md w-fit items-center hover:bg-[#55dcbe] transition-all duration-300 self-end text-sm font-semibold"
-        >
-          Confirm Reservation
-        </button>
       </form>
     </div>
   );
@@ -161,35 +155,45 @@ export default function Reservation() {
     <div className="flex flex-col min-h-screen bg-[#1A1A1A] text-white items-center">
       <Navbar color={"#1A1A1A"} />
       <div className="flex flex-col py-10">
-        <p className="text-2xl p-4 flex items-center gap-2">
+        <p className="text-2xl pb-4 flex items-center gap-2 border-b">
           {<CircleCheckBig color="white" size={30} />}Confirm Reservation
         </p>
-        <div className="flex gap-52 h-[500px] w-[1000px] p-10 justify-center pt-20">
-          <div className="flex flex-col w-[30%]">
+        <div className="flex pt-10">
+          <div className="flex flex-col w-[60%]">
             <p className="font-bold pb-4 flex gap-2 items-center">
-              <RiInformation2Fill size={20} /> Reservation Details
-            </p>
-            <div className="">
-              <div className="flex gap-5 border-2 border-[#1f1f1f] p-2 items-center">
-                <p className="text-sm text-[#777777]">Address</p>
-                <p className="text-sm">{court.court_address}</p>
-              </div>
-              <div className="flex gap-11 border-2 border-[#1f1f1f] p-2 items-center">
-                <p className="text-sm text-[#777777]">Type</p>
-                <p className="text-sm">{court.court_type}</p>
-              </div>
-            </div>
-            <p>{court.date_of_reservation}</p>
-            <p>{court.court_price}</p>
-          </div>
-          <div className="flex flex-col w-[70%]">
-            <p className="font-bold pb-4 flex gap-2 items-center">
-              <FaUserPen size={20}/> Client Information
+              <FaUserPen size={20} /> Client Information
             </p>
             <Form court_id={id} price={court.price} />
+          </div>
+          <div className="flex flex-col w-[40%] bg-[#2C2C2C] p-4 rounded-md gap-4">
+            <p className="font-bold flex gap-2 items-center">
+              <RiInformation2Fill size={20} /> Reservation Details
+            </p>
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2 items-center">
+                <p className="text-sm text-[#777777]">Address: </p>
+                <p className="text-sm">{court.address}</p>
+              </div>
+              <div className="flex gap-2 items-center">
+                <p className="text-sm text-[#777777]">Type: </p>
+                <p className="text-sm">{court.type}</p>
+              </div>
+              {/* <p>{court.date_of_reservation}</p> */}
+              <div className="flex gap-2 items-center">
+                <p className="text-sm text-[#777777]">Price: </p>
+                <p className="text-sm">{court.price} EGP</p>
+              </div>
+            </div>
+            <button
+              type="submit"
+              className="bg-[#27c6a9] text-white p-2 rounded-md items-center hover:bg-[#55dcbe] transition-all duration-300 text-sm font-semibold"
+            >
+              Confirm Reservation
+            </button>
           </div>
         </div>
       </div>
     </div>
   );
 }
+
