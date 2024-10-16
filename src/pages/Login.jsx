@@ -1,74 +1,118 @@
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import FloatingInput from "../components/FloatingInput";
+import { useFormik } from "formik";
+import FormInput from "../components/FormInput";
+import { loginSchema } from "../schemas/schemas";
+import ReactLoading from "react-loading";
+import { toast } from "react-toastify";
+import useUserStore from "../store/user.store";
+import { Link } from "react-router-dom";
 
 export default function Login() {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const setUser = useUserStore((state) => state.setUser);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    axios
-      .post("http://localhost:3000/api/auth/login", formData)
-      .then((response) => {
-        console.log("Success:", response.data);
-        localStorage.setItem("token", response.data.token);
+  const { values, errors, handleSubmit, handleChange, touched } = useFormik({
+    initialValues: {
+      email: "",
+      password: "",
+    },
+    validationSchema: loginSchema,
+    onSubmit: async (values) => {
+      setLoading(true);
+      try {
+        const response = await axios.post(
+          "http://localhost:3000/api/auth/login",
+          values
+        );
+        const authToken = response.data.token;
+        localStorage.setItem("token", authToken);
+
+        if (authToken) {
+          const userResponse = await axios.get(
+            "http://localhost:3000/api/users/me",
+            {
+              headers: {
+                Authorization: `Bearer ${authToken}`,
+              },
+            }
+          );
+          setUser(userResponse.data);
+        }
         navigate("/");
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  };
+        toast.success("Login successful");
+      } catch (error) {
+        setLoading(false);
+        toast.error(error.response?.data?.message);
+      }
+    },
+  });
 
   useEffect(() => {
     if (token) {
       navigate("/");
     }
-  }, []);
+  }, [token, navigate]);
+
+  if (token) {
+    return null;
+  }
 
   return (
-    <div className="h-screen flex flex-col justify-center items-center gap-8 bg-[#171717]">
-      <img src="/logo.png" alt="logo" className="h-24 w-24" />
-      <p className="text-4xl font-bold text-white">Welcome Back</p>
-      <p className="text-sm text-white">
-        Enter your credentials to access your account
-      </p>
-      <form onSubmit={handleSubmit} className="flex flex-col w-[500px] gap-5">
-        <FloatingInput
-          placeholder={"Email"}
-          label={"Email"}
-          name={"email"}
+    <div className="h-screen flex flex-col justify-center items-center gap-4 bg-secondary">
+      <img src="/logo.png" alt="logo" className="w-32" />
+      <div className="flex flex-col gap-2 items-center">
+        <p className="text-5xl font-bold text-white">Welcome Back!</p>
+        <p className="text-white text-sm">
+          Enter your credentials to access your account
+        </p>
+      </div>
+      <form onSubmit={handleSubmit} className="flex flex-col w-[35%] gap-5">
+        <FormInput
+          name="email"
+          type="text"
+          placeHolder="Email"
+          value={values.email}
           onChange={handleChange}
-          value={formData.email}
+          error={errors.email}
+          touched={touched.email}
         />
-        <FloatingInput
-          placeholder={"Password"}
-          label={"Password"}
-          name={"password"}
+        <FormInput
+          name="password"
+          type="password"
+          placeHolder="Password"
+          value={values.password}
           onChange={handleChange}
-          value={formData.password}
+          error={errors.password}
+          touched={touched.password}
         />
-        <Link to="/" className="text-xs text-[#27c6a9] self-end">
-          Forgot password?
-        </Link>
-        <button
-          type="submit"
-          className="bg-[#27c6a9] text-white p-2 rounded-md hover:bg-[#55dcbe] transition-all duration-300"
-        >
-          Login
-        </button>
-        <div className="flex self-center gap-1">
+        {loading ? (
+          <button
+            disabled
+            className="rounded cursor-not-allowed flex items-center justify-center bg-primary px-8 py-2 text-white transition h-10"
+          >
+            <ReactLoading
+              type="bubbles"
+              color="#ffffff"
+              height={25}
+              width={25}
+            />
+          </button>
+        ) : (
+          <button
+            type="submit"
+            className="rounded bg-primary px-8 py-2 text-white transition hover:bg-primary/80 h-10"
+          >
+            Login
+          </button>
+        )}
+        <div className="flex gap-1">
           <p className="text-sm text-white">{"Don't have an account?"}</p>
-          <Link to="/register" className="text-sm underline text-[#27c6a9]">
+          <Link to="/register" className="text-sm underline text-primary">
             Register here
           </Link>
         </div>

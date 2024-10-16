@@ -1,123 +1,179 @@
-import {React, useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import FloatingInput from "../components/FloatingInput";
+import { useFormik } from "formik";
+import { toast } from "react-toastify";
+import { registerSchema } from "../schemas/schemas";
+import useUserStore from "../store/user.store";
+import ReactLoading from "react-loading";
+import FormInput from "../components/FormInput";
 
 export default function Register() {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
-    email: "",
-    password: "",
-    confirm_password: "",
-    address: "",
-    phone: "",
-  });
+  const [loading, setLoading] = useState(false);
+  const setUser = useUserStore((state) => state.setUser);
 
-  const handleChange = (e) => {
-    // مش فاهمة
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const { values, errors, handleSubmit, handleChange, touched } = useFormik({
+    initialValues: {
+      first_name: "",
+      last_name: "",
+      email: "",
+      password: "",
+      confirm_password: "",
+      phone: "",
+      address: "",
+    },
+    validationSchema: registerSchema,
+    onSubmit: async (values) => {
+      setLoading(true);
+      try {
+        const response = await axios.post(
+          "http://localhost:3000/api/auth/register",
+          values
+        );
+        const authToken = response.data.token;
+        localStorage.setItem("token", authToken);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (formData.password !== formData.confirm_password) {
-      alert("Passwords do not match");
-      return;
-    }
-    axios
-      .post("http://localhost:3000/api/auth/register", formData)
-      .then((response) => {
-        console.log("Success:", response.data);
-        localStorage.setItem("token", response.data.token);
+        if (authToken) {
+          const userResponse = await axios.get(
+            "http://localhost:3000/api/users/me",
+            {
+              headers: {
+                Authorization: `Bearer ${authToken}`,
+              },
+            }
+          );
+          setUser(userResponse.data);
+        }
         navigate("/");
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  };
+        toast.success("Login successful");
+      } catch (error) {
+        setLoading(false);
+        toast.error(error.response?.data?.message);
+      }
+    },
+  });
 
   useEffect(() => {
     if (token) {
       navigate("/");
     }
-  }, []);
+  }, [token, navigate]);
+
+  if (token) {
+    return null;
+  }
 
   return (
-    <div className="bg-[#171717] flex gap-28 justify-center items-center">
-      <div className="h-screen flex flex-col items-center justify-center gap-8 ml-9">
-        <p className="text-5xl font-bold text-white self-start">
-          Create new account
-        </p>
-        <p className="text-white text-sm self-start">
-          Reserve your spot on the best sports courts in town.
-        </p>
-        <form onSubmit={handleSubmit} className="flex flex-col w-[500px] gap-5">
+    <div className="h-screen bg-[#171717] flex">
+      <div className="flex flex-col w-[50%] justify-center items-center">
+        <form onSubmit={handleSubmit} className="flex flex-col w-[70%] gap-5">
+          <div className="flex flex-col gap-2">
+            <p className="text-5xl font-bold text-white">Create new account</p>
+            <p className="text-white text-sm">
+              Reserve your spot on the best sports courts in town.
+            </p>
+          </div>
           <div className="flex gap-2">
-            <FloatingInput
+            <FormInput
+              name="first_name"
+              type="text"
+              placeHolder="First name"
+              value={values.first_name}
               onChange={handleChange}
-              name={"first_name"}
-              placeholder={"First name"}
-              label={"First name"}
+              error={errors.first_name}
+              touched={touched.first_name}
             />
-            <FloatingInput
+            <FormInput
+              name="last_name"
+              type="text"
+              placeHolder="Last name"
+              value={values.last_name}
               onChange={handleChange}
-              name={"last_name"}
-              placeholder={"Last name"}
-              label={"Last name"}
+              error={errors.last_name}
+              touched={touched.last_name}
             />
           </div>
-          <FloatingInput
+          <FormInput
+            name="email"
+            type="text"
+            placeHolder="Email"
+            value={values.email}
             onChange={handleChange}
-            name={"email"}
-            placeholder={"Email"}
-            label={"Email"}
+            error={errors.email}
+            touched={touched.email}
           />
-          <FloatingInput
+          <FormInput
+            name="password"
+            type="password"
+            placeHolder="Password"
+            value={values.password}
             onChange={handleChange}
-            name={"password"}
-            placeholder={"Password"}
-            label={"Password"}
+            error={errors.password}
+            touched={touched.password}
           />
-          <FloatingInput
+          <FormInput
+            name="confirm_password"
+            type="password"
+            placeHolder="Confirm Password"
+            value={values.confirm_password}
             onChange={handleChange}
-            name={"confirm_password"}
-            placeholder={"Confirm password"}
-            label={"Confirm password"}
+            error={errors.confirm_password}
+            touched={touched.confirm_password}
           />
-          <FloatingInput
+          <FormInput
+            name="phone"
+            type="text"
+            placeHolder="Phone Number"
+            value={values.phone}
             onChange={handleChange}
-            name={"phone"}
-            placeholder={"Phone number"}
-            label={"Phone number"}
+            error={errors.phone}
+            touched={touched.phone}
           />
-          <FloatingInput
+          <FormInput
+            name="address"
+            type="text"
+            placeHolder="Address"
+            value={values.address}
             onChange={handleChange}
-            name={"address"}
-            placeholder={"Address"}
-            label={"Address"}
+            error={errors.address}
+            touched={touched.address}
           />
-          <button
-            type="submit"
-            className="bg-[#27c6a9] text-white p-2 rounded-md hover:bg-[#55dcbe] transition-all duration-300"
-          >
-            Register
-          </button>
+
+          {loading ? (
+            <button
+              disabled
+              className="rounded cursor-not-allowed flex items-center justify-center bg-primary px-8 py-2 text-white transition h-10"
+            >
+              <ReactLoading
+                type="bubbles"
+                color="#ffffff"
+                height={25}
+                width={25}
+              />
+            </button>
+          ) : (
+            <button
+              type="submit"
+              className="rounded bg-primary px-8 py-2 text-white transition hover:bg-primary/80 h-10"
+            >
+              Register
+            </button>
+          )}
+
+          <div className="flex gap-1">
+            <p className="text-sm text-white">Already a member?</p>
+            <Link className="text-sm underline text-[#27c6a9]" to={"/login"}>
+              Login
+            </Link>
+          </div>
         </form>
-        <div className="flex self-center gap-1">
-          <p className="text-sm text-white">Already a member?</p>
-          <Link className="text-sm underline text-[#27c6a9]" to={"/login"}>
-            Login
-          </Link>
-        </div>
       </div>
-      <img
-        src="/bg.jpg"
-        alt="register"
-        className="w-[825px] h-[675px] rounded-md"
-      />
+      <div className="w-[50%] pr-10 py-10">
+        <img src="/bg.jpg" alt="register" className="rounded-md h-full" />
+      </div>
     </div>
   );
 }

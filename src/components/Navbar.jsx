@@ -4,6 +4,7 @@ import useUserStore from "../store/user.store";
 import { FaUserEdit } from "react-icons/fa";
 import { IoLogOutOutline } from "react-icons/io5";
 import { FaPlus } from "react-icons/fa";
+import { toast } from "react-toastify";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -22,8 +23,9 @@ export default function Navbar() {
 
   const handleLogout = () => {
     userLogout();
-    navigate("/login");
     localStorage.removeItem("token");
+    navigate("/login");
+    toast.success("Logout successful");
   };
 
   const handleClickOutside = (event) => {
