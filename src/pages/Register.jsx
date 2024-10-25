@@ -48,7 +48,7 @@ export default function Register() {
           setUser(userResponse.data);
         }
         navigate("/");
-        toast.success("Login successful");
+        toast.success("Register successful");
       } catch (error) {
         setLoading(false);
         toast.error(error.response?.data?.message);

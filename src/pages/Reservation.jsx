@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import { useParams } from "react-router-dom";
 import axios from "axios";
@@ -60,7 +60,6 @@ function Form({ court_id, price }) {
   };
 
   const time_slots = [
-    "00:00 - 01:00",
     "01:00 - 02:00",
     "02:00 - 03:00",
     "03:00 - 04:00",
@@ -72,18 +71,6 @@ function Form({ court_id, price }) {
     "09:00 - 10:00",
     "10:00 - 11:00",
     "11:00 - 12:00",
-    "12:00 - 13:00",
-    "13:00 - 14:00",
-    "14:00 - 15:00",
-    "15:00 - 16:00",
-    "16:00 - 17:00",
-    "17:00 - 18:00",
-    "18:00 - 19:00",
-    "19:00 - 20:00",
-    "20:00 - 21:00",
-    "21:00 - 22:00",
-    "22:00 - 23:00",
-    "23:00 - 00:00",
   ];
 
   return (
@@ -94,7 +81,7 @@ function Form({ court_id, price }) {
       >
         <div className="flex gap-5 items-center">
           <label>Time slot:</label>
-          <div className="mt-1 w-32 rounded-md shadow-lg bg-[#2C2C2C] ring-1 ring-black ring-opacity-5">
+          <div className="flex gap-2 items-center">
             <select
               className="bg-[#2C2C2C] text-white text-sm rounded-md focus:ring-1 ring-[#2C2C2C] ring-opacity-5 block w-full py-2 px-3 max-h-16 scrollbar-thin scrollbar-thumb-[#777777] scrollbar-track-[#2c2c2c]"
               onChange={(e) => setTimeSlot(e.target.value)}
@@ -106,6 +93,7 @@ function Form({ court_id, price }) {
                 </option>
               ))}
             </select>
+            <p className="text-white">PM</p>
           </div>
         </div>
 
@@ -178,7 +166,6 @@ export default function Reservation() {
                 <p className="text-sm text-[#777777]">Type: </p>
                 <p className="text-sm">{court.type}</p>
               </div>
-              {/* <p>{court.date_of_reservation}</p> */}
               <div className="flex gap-2 items-center">
                 <p className="text-sm text-[#777777]">Price: </p>
                 <p className="text-sm">{court.price} EGP</p>
@@ -196,4 +183,3 @@ export default function Reservation() {
     </div>
   );
 }
-

@@ -1,11 +1,10 @@
-import React, { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useQuery, useQueryClient } from "react-query";
+import { useQuery } from "react-query";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { MapPin, CalendarDays } from "lucide-react";
-import { FaStarOfLife } from "react-icons/fa6";
 import Navbar from "../components/Navbar";
 
 export default function Courts() {
@@ -18,7 +17,11 @@ export default function Courts() {
   const [showTimeDropdown, setShowTimeDropdown] = useState(false);
   const [showLocationDropdown, setShowLocationDropdown] = useState(false);
   const [courtLocation, setCourtLocation] = useState(court_location);
+  const [tempLocation, setTempLocation] = useState(courtLocation);
   const navigate = useNavigate();
+
+  const locationRef = useRef(null);
+  const dateRef = useRef(null);
 
   const fetchCourts = async () => {
     const { data } = await axios.get(
@@ -45,13 +48,35 @@ export default function Courts() {
   );
 
   const handleLocationSelect = (governorate) => {
-    setCourtLocation(governorate);
+    setTempLocation(governorate);
     setShowLocationDropdown(false);
   };
 
   const handleSearch = () => {
-    navigate(`/courts?location=${courtLocation}&type=${court_type}`);
+    setCourtLocation(tempLocation.toLowerCase());
+    navigate(
+      `/courts?location=${tempLocation.toLowerCase()}&type=${court_type}`
+    );
   };
+
+  const clickOutside = (e) => {
+    if (
+      locationRef.current &&
+      !locationRef.current.contains(e.target) &&
+      dateRef.current &&
+      !dateRef.current.contains(e.target)
+    ) {
+      setShowLocationDropdown(false);
+      setShowTimeDropdown(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", clickOutside);
+    return () => {
+      document.removeEventListener("mousedown", clickOutside);
+    };
+  }, []);
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading courts: {error.message}</div>;
@@ -65,155 +90,128 @@ export default function Courts() {
     "Cairo",
     "Alexandria",
     "Giza",
-    "Shubra El Kheima",
-    "Port Said",
-    "Suez",
-    "Luxor",
     "Mansoura",
-    "El-Mahalla El-Kubra",
     "Tanta",
-    "Asyut",
     "Ismailia",
-    "Fayyum",
     "Zagazig",
-    "Aswan",
-    "Damietta",
-    "Damanhur",
-    "Minya",
-    "Beni Suef",
-    "Hurghada",
-    "Qena",
-    "Sohag",
-    "Shibin El Kom",
-    "Banha",
-    "Kafr El Sheikh",
-    "Arish",
-    "Mallawi",
-    "Dakhla Oasis",
-    "Berenice",
-    "Marsa Alam",
-    "Siwa Oasis",
+    "Borg Elarab", // دولة
   ];
 
   return (
-    <div className="relative bg-[#1E1E1E] min-h-screen">
+    <div className="bg-[#1E1E1E] min-h-screen">
       <Navbar />
-      <div className="flex justify-center">
-        <div className="relative w-[1000px] h-48 rounded-lg mt-16 bg-[#1A1A1A]">
-          <div className="flex text-white gap-80 m-5 mt-10">
-            <p className="flex items-center gap-3">
-              {<CalendarDays size={18} />} Select Date
-              {<FaStarOfLife color="#27c6a9" size={10} />}
-            </p>
-            <p className="flex items-center gap-3 ml-20">
-              {<MapPin size={21} />} Select Location
-              {<FaStarOfLife color="#27c6a9" size={10} />}
-            </p>
+      <div className="lg:max-w-[1200px] lg:min-w-[1024px] w-full lg:mx-auto py-14 flex flex-col gap-10">
+        <div className="flex relative rounded-lg bg-[#1A1A1A] lg:w-[800px] lg:mx-auto px-14 h-52 items-center gap-10">
+          <div className="absolute bg-[#2c2c2c] rounded-full flex items-center justify-center text-white text-lg -top-5 left-1/2 transform -translate-x-1/2 px-4 py-2">
+            Book {court_type} Court
           </div>
-
-          <div className="absolute inset-x-0 top-1/2 transform -translate-y-1/2 flex justify-center gap-3">
-            {/* Input for Date/Time Selection */}
-            <input
-              type="text"
-              value={
-                selectedTime
-                  ? selectedTime.toLocaleDateString()
-                  : new Date().toLocaleDateString()
-              }
-              onFocus={() => setShowTimeDropdown(true)}
-              className="bg-[#2c2c2c] rounded-full h-10 w-full flex items-center justify-center text-white mx-5 px-4"
-              readOnly
-            />
-
-            {/* DatePicker Dropdown */}
-            {showTimeDropdown && (
-              <div className="absolute mt-1 shadow-lg">
-                <DatePicker
-                  selected={selectedTime}
-                  onChange={(date) => {
-                    setSelectedTime(date); // Update the selected date
-                  }}
-                  className="block cursor-pointer z-30 custom-date-picker text-sm text-white w-fit"
-                  calendarClassName="custom-calendar"
-                  inline // Display the calendar inline directly
-                />
+          <div className="flex flex-col w-full text-white gap-2">
+            <div className="flex items-center gap-2">
+              <CalendarDays size={18} />
+              <div className="flex">
+                Select Date <span className="text-primary">*</span>
               </div>
-            )}
-
-            <input
-              type="text"
-              value={courtLocation}
-              onChange={(e) => setCourtLocation(e.target.value)}
-              className="bg-[#2c2c2c] rounded-full h-10 w-full flex items-center justify-center text-white mx-5 px-4"
-              onFocus={() => setShowLocationDropdown(true)}
-            />
-
-            {showLocationDropdown && (
-              <div className="absolute w-[430px] rounded-md shadow-lg bg-[#2C2C2C] ring-1 ring-black ring-opacity-5 z-50 top-10 right-9">
-                <div
-                  className="py-1 max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-[#777777] scrollbar-track-[#2c2c2c]"
-                  role="menu"
-                  aria-orientation="vertical"
-                  aria-labelledby="options-menu"
-                >
-                  {governoratesOfEgypt.map((governorate, index) => (
-                    <div
-                      key={index}
-                      className="block px-4 py-2 text-sm text-white hover:bg-[#212121] cursor-pointer z-30"
-                      onClick={() => handleLocationSelect(governorate)}
-                      role="menuitem"
-                    >
-                      {governorate}
-                    </div>
-                  ))}
+            </div>
+            <div ref={dateRef} className="relative w-full">
+              <input
+                type="text"
+                value={
+                  selectedTime
+                    ? selectedTime.toLocaleDateString()
+                    : new Date().toLocaleDateString()
+                }
+                onFocus={() => setShowTimeDropdown(true)}
+                className="bg-[#2c2c2c] rounded-md px-4 py-2 cursor-pointer w-full"
+                readOnly
+              />
+              {showTimeDropdown && (
+                <div className="absolute shadow-lg top-12 z-50">
+                  <DatePicker
+                    selected={selectedTime}
+                    onChange={(date) => {
+                      setSelectedTime(date);
+                    }}
+                    className="cursor-pointer custom-date-picker text-sm text-white w-fit"
+                    calendarClassName="custom-calendar"
+                    inline
+                  />
                 </div>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-col w-full text-white gap-2">
+            <div className="flex items-center gap-2">
+              <MapPin size={21} />
+              <div className="flex">
+                Select Location <span className="text-primary">*</span>
               </div>
-            )}
-          </div>
-
-          <div className="absolute inset-x-0 bottom-28 flex justify-center">
-            <div className="bg-[#2c2c2c] rounded-full h-10 w-36 flex items-center justify-center text-white -mt-24">
-              Book {court_type} Court
+            </div>
+            <div ref={locationRef} className="relative w-full">
+              <input
+                type="text"
+                value={tempLocation}
+                onChange={(e) => setTempLocation(e.target.value)}
+                className="bg-[#2c2c2c] rounded-md px-4 py-2 cursor-pointer w-full"
+                onFocus={() => setShowLocationDropdown(true)}
+              />
+              {showLocationDropdown && (
+                <div className="absolute rounded-md bg-[#2C2C2C] top-12 z-50">
+                  <div
+                    className="py-1 max-h-56 w-[230px] overflow-y-auto scrollbar-thin scrollbar-thumb-[#777777] scrollbar-track-[#2c2c2c]"
+                    role="menu"
+                    aria-orientation="vertical"
+                    aria-labelledby="options-menu"
+                  >
+                    {governoratesOfEgypt.map((governorate, index) => (
+                      <div
+                        key={index}
+                        className="block px-4 py-2 text-sm text-white hover:bg-[#212121] cursor-pointer z-30"
+                        onClick={() => handleLocationSelect(governorate)}
+                        role="menuitem"
+                      >
+                        {governorate}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-          <div className="absolute inset-x-0 -bottom-4 flex justify-center">
-            <button
-              className="bg-[#27c6a9] rounded-full h-10 w-24 flex items-center justify-center text-white hover:bg-[#55dcbe] transition-all duration-200 z-0"
-              onClick={handleSearch}
-            >
-              Search
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-8 grid grid-cols-3 gap-4 px-10">
-        {courts?.map((court) => (
-          <Link
-            to={`/reservation/${court.id}`}
-            key={court.id}
-            className="rounded-lg overflow-hidden shadow-lg bg-[#1A1A1A]"
+          <button
+            className="absolute bg-primary hover:bg-primary/80 transition-all rounded-full flex items-center justify-center text-white -bottom-5 left-1/2 transform -translate-x-1/2 px-4 py-2 z-0"
+            onClick={handleSearch}
           >
-            <img
-              src={
-                court.court_type === "padel"
-                  ? padel_image
-                  : court.court_type === "tennis"
-                  ? tennis_image
-                  : court.court_type === "basketball"
-                  ? basketball_image
-                  : football_image
-              }
-              alt={`${court.court_type} court`}
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-4 text-white">
-              <h2 className="text-xl font-bold">{court.court_name}</h2>
-              <p>{court.court_address}</p>
-              <p>{court.court_price} EGP</p>
-            </div>
-          </Link>
-        ))}
+            Search
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          {courts?.map((court) => (
+            <Link
+              to={`/reservation/${court.id}`}
+              key={court.id}
+              className="rounded-lg overflow-hidden shadow-lg bg-[#1A1A1A]"
+            >
+              <img
+                src={
+                  court.court_type === "padel"
+                    ? padel_image
+                    : court.court_type === "tennis"
+                    ? tennis_image
+                    : court.court_type === "basketball"
+                    ? basketball_image
+                    : football_image
+                }
+                alt={`${court.court_type} court`}
+                className="w-full h-48 object-cover"
+              />
+              <div className="p-4 text-white">
+                <h2 className="text-xl font-bold">{court.court_name}</h2>
+                <p>{court.court_address}</p>
+                <p>{court.court_price} EGP</p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );
