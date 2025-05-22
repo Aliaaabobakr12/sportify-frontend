@@ -1,5 +1,3 @@
-import React from "react";
-
 const courts = [
   {
     img: "/football_card.jpg",
@@ -27,7 +25,7 @@ export default function Section_1() {
   return (
     <div className="relative flex flex-col items-center mt-28 z-10 w-full">
       <div className="absolute bottom-52 right-0 z-0">
-        <div className="bg-gradient-to-r gradient-angle from-[#171717] to-[#2c2c2c] rounded-full size-64"></div>
+        <div className="bg-[#1c1917] rounded-full size-64"></div>
       </div>
       <div className="flex items-center gap-2 mb-10 self-start ml-32">
         <div className="h-16 w-1 bg-[#27c6a9]"></div>
@@ -40,7 +38,7 @@ export default function Section_1() {
         {courts.map((court, index) => (
           <div
             key={index}
-            className="bg-[#2c2c2c] p-4 rounded-lg shadow-lg w-full mb-8 z-0"
+            className="bg-[#1c1917] p-4 rounded-lg shadow-lg w-full mb-8 z-0"
           >
             <img
               src={court.img}

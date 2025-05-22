@@ -9,24 +9,8 @@ import { CircleCheckBig } from "lucide-react";
 import { RiInformation2Fill } from "react-icons/ri";
 import { FaUserPen } from "react-icons/fa6";
 
-function Form({ court_id, price }) {
-  const token = localStorage.getItem("token");
-
+function Form({ formData, setFormData, handleSubmit }) {
   const [timeSlot, setTimeSlot] = useState("00:00 - 01:00");
-
-  const date = useDateStore((state) => state.date);
-
-  const user = useUserStore((state) => state.user);
-  const [formData, setFormData] = useState({
-    user_id: user.user_id,
-    court_id: court_id,
-    price: price,
-    timeslot_start: "",
-    timeslot_end: "",
-    date_of_reservation: date,
-    with_coach: false,
-    with_tools: false,
-  });
 
   useEffect(() => {
     if (timeSlot) {
@@ -41,22 +25,6 @@ function Form({ court_id, price }) {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    axios
-      .post("http://localhost:3000/api/reservations", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((response) => {
-        console.log("Success:", response.data);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
   };
 
   const time_slots = [
@@ -122,7 +90,11 @@ function Form({ court_id, price }) {
 }
 
 export default function Reservation() {
+  const token = localStorage.getItem("token");
+  const user = useUserStore((state) => state.user);
+  const date = useDateStore((state) => state.date);
   const { id } = useParams();
+
   const fetchCourt = async () => {
     const { data } = await axios.get(`http://localhost:3000/api/courts/${id}`, {
       headers: {
@@ -137,6 +109,60 @@ export default function Reservation() {
     isLoading,
     error,
   } = useQuery(["court", { id }], fetchCourt);
+
+  const fetchReservationByCourtId = async () => {
+    const { data } = await axios.get(
+      `http://localhost:3000/api/reservations/court/${court?.id}/date/${date}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+    return data;
+  };
+
+  const { data: courtById, isLoading: isLoadingByCourtId } = useQuery(
+    ["courtById", { id: court?.id, date }],
+    fetchReservationByCourtId
+  );
+
+  const [formData, setFormData] = useState({
+    user_id: user.id,
+    court_id: id,
+    price: 0,
+    timeslot_start: "",
+    timeslot_end: "",
+    date_of_reservation: date,
+    with_coach: false,
+    with_tools: false,
+  });
+
+  useEffect(() => {
+    if (court) {
+      setFormData((prev) => ({
+        ...prev,
+        price: court.price,
+      }));
+    }
+  }, [court]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    axios
+      .post("http://localhost:3000/api/reservations", formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then((response) => {
+        console.log("Success:", response.data);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
+
   if (isLoading) return <div>Loading...</div>;
 
   return (
@@ -151,7 +177,12 @@ export default function Reservation() {
             <p className="font-bold pb-4 flex gap-2 items-center">
               <FaUserPen size={20} /> Client Information
             </p>
-            <Form court_id={id} price={court.price} />
+            <Form
+              court_id={id}
+              price={court.price}
+              formData={formData}
+              setFormData={setFormData}
+            />
           </div>
           <div className="flex flex-col w-[40%] bg-[#2C2C2C] p-4 rounded-md gap-4">
             <p className="font-bold flex gap-2 items-center">
@@ -172,6 +203,7 @@ export default function Reservation() {
               </div>
             </div>
             <button
+              onClick={handleSubmit}
               type="submit"
               className="bg-[#27c6a9] text-white p-2 rounded-md items-center hover:bg-[#55dcbe] transition-all duration-300 text-sm font-semibold"
             >

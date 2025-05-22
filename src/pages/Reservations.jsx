@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { useFormik } from "formik";
 
 export default function NewCourt() {

@@ -1,31 +1,391 @@
-import { useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import { useQuery } from "react-query";
 import axios from "axios";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { MapPin, CalendarDays } from "lucide-react";
+import { MapPin, Clock, CalendarDays, Info, Trophy, Check } from "lucide-react";
 import Navbar from "../components/Navbar";
+import useUserStore from "../store/user.store";
+import { useNavigate } from "react-router-dom";
+
+function Sport({ type, setType }) {
+  const sports = [
+    {
+      name: "Football",
+      image: "/football_court.jpg",
+      value: "football",
+    },
+    {
+      name: "Basketball",
+      image: "/bball-court.jpg",
+      value: "basketball",
+    },
+    {
+      name: "Tennis",
+      image: "/tennis_court.jpg",
+      value: "tennis",
+    },
+    {
+      name: "Padel",
+      image: "/padel_court.webp",
+      value: "padel",
+    },
+  ];
+
+  return (
+    <div className="grid grid-cols-4 gap-8">
+      {sports.map((sport, index) => (
+        <button
+          type="button"
+          onClick={() => {
+            setType(sport.value);
+          }}
+          key={index}
+          className={`rounded-lg overflow-hidden ${
+            type === sport.value
+              ? "outline outline-primary"
+              : "hover:outline hover:outline-[#262528]"
+          }`}
+        >
+          <img
+            src={sport.image}
+            alt={`${sport.name} court`}
+            className="w-full h-36 object-cover"
+          />
+          <div className="p-4 text-white">
+            <p>{sport.name}</p>
+          </div>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function Location({ location, setLocation, courts }) {
+  return (
+    <div className="flex flex-col gap-4">
+      {courts?.map((court, index) => (
+        <button
+          onClick={() => {
+            setLocation(court.name);
+          }}
+          key={index}
+          className={`flex gap-4 p-4 border border-[#262528] rounded-lg items-start ${
+            location === court.name
+              ? "bg-primary/5 outline-1 outline outline-primary"
+              : "hover:outline-1 hover:outline hover:outline-primary"
+          }`}
+        >
+          <MapPin className="text-primary mt-1" />
+          <div className="flex flex-col items-start">
+            <p className="text-lg">{court.name}</p>
+            <p className="text-[#7D7C82]">
+              {court.address + ", " + court.government}
+            </p>
+            <p className="text-primary underline text-sm mt-4">
+              {parseFloat(court.price).toFixed(0)} EGP/hour
+            </p>
+          </div>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ChooseDate({ date, setDate }) {
+  return (
+    <div className="flex flex-col w-full text-white gap-2 items-center">
+      <DatePicker
+        selected={date || new Date()}
+        onChange={(date) => {
+          setDate(date);
+        }}
+        calendarClassName="custom-calendar"
+        inline
+      />
+    </div>
+  );
+}
+
+function ChooseTime({ time, setTime, courtById }) {
+  const times = [
+    "01:00 - 02:00",
+    "02:00 - 03:00",
+    "03:00 - 04:00",
+    "04:00 - 05:00",
+    "05:00 - 06:00",
+    "06:00 - 07:00",
+    "07:00 - 08:00",
+    "08:00 - 09:00",
+    "09:00 - 10:00",
+    "10:00 - 11:00",
+    "11:00 - 12:00",
+  ];
+
+  const isTimeSlotReserved = (timeSlot) => {
+    if (!courtById || !Array.isArray(courtById)) return false;
+
+    const [start] = timeSlot.split(" - ");
+    const formattedStart = `${start}:00`;
+
+    return courtById.some(
+      (reservation) => reservation.start === formattedStart
+    );
+  };
+
+  return (
+    <div className="grid grid-cols-4 w-full text-white gap-4 text-lg">
+      {times.map((t, index) => {
+        const isReserved = isTimeSlotReserved(t);
+        return (
+          <button
+            key={index}
+            onClick={() => {
+              if (!isReserved) setTime(t);
+            }}
+            disabled={isReserved}
+            className={`flex items-center justify-center gap-3 outline-1 outline py-3 rounded-md font-semibold ${
+              isReserved
+                ? "bg-[#262626] text-[#7D7C82] cursor-not-allowed"
+                : time === t
+                ? "bg-primary/5 outline-1 outline outline-primary"
+                : "hover:outline-1 outline-[#262528] outline hover:outline hover:outline-primary"
+            }`}
+          >
+            <Clock size={18} className="text-[#7D7C82]" /> {t}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function Confirmation({
+  type,
+  location,
+  date,
+  time,
+  price,
+  priceWithFees,
+  setConfirm,
+  handleSubmit,
+  loading,
+}) {
+  const summary = [
+    {
+      name: "Sport",
+      value: type.charAt(0).toUpperCase() + type.slice(1),
+      icon: <Trophy size={18} />,
+    },
+    {
+      name: "Location",
+      value: location.charAt(0).toUpperCase() + location.slice(1),
+      icon: <MapPin size={18} />,
+    },
+    {
+      name: "Date",
+      value: date?.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      }),
+      icon: <CalendarDays size={18} />,
+    },
+    {
+      name: "Time",
+      value: time,
+      icon: <Clock size={18} />,
+    },
+  ];
+
+  return (
+    <div className="flex flex-col lg:max-w-[750px] lg:min-w-[600px] w-full lg:mx-auto my-14 gap-10">
+      <p className="text-3xl font-semibold">Court Reservation</p>
+      <div className="flex flex-col p-6 rounded-lg bg-bgSecondary gap-8 border border-[#262528]">
+        <div>
+          <p className="text-2xl font-semibold">Confirm Your Reservation</p>
+          <p className="text-[#7D7C82]">
+            Please review your reservation details before confirming
+          </p>
+        </div>
+        <div className="flex flex-col gap-4">
+          {summary.map((item, index) => (
+            <div key={index} className="flex gap-4 items-center">
+              <div className="w-10 h-10 bg-primary/5 text-primary rounded-full flex items-center justify-center">
+                {item.icon}
+              </div>
+
+              <div key={index} className="flex flex-col">
+                <p className="text-[#7D7C82]">{item.name}</p>
+                <p className="text-lg font-semibold">{item.value}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-col">
+          <div className="flex flex-col py-4 border-y border-[#262528]">
+            <div className="flex items-center justify-between text-lg font-semibold">
+              <p>Court fee</p>
+              <p>{price} EGP</p>
+            </div>
+            <div className="flex items-center justify-between text-[#7D7C82]">
+              <p>Service fee</p>
+              <p>10 EGP</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between text-lg font-semibold pt-2">
+            <p>Total</p>
+            <p>{priceWithFees} EGP</p>
+          </div>
+        </div>
+
+        <div className="p-4 flex items-start gap-2 text-[#7D7C82] bg-[#262626] rounded-lg">
+          <Info size={18} className="mt-1" />
+          <p className="">
+            Cancellations made at least 24 hours before the reservation time are
+            eligible for a full refund.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <button
+            onClick={handleSubmit}
+            className="bg-primary hover:bg-primary/80 transition-all rounded-md py-3 text-[#262528] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary"
+          >
+            {loading ? "loading.." : "Confirm Reservation"}
+          </button>
+          <button
+            onClick={(prev) => setConfirm(!prev)}
+            className="bg-black hover:bg-black/20 border border-[#262528] transition-all rounded-md py-3 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary"
+          >
+            Back to Reservation
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Receipt({ type, location, date, time, setSuccess }) {
+  const navigate = useNavigate();
+  const summary = [
+    {
+      name: "Sport",
+      value: type.charAt(0).toUpperCase() + type.slice(1),
+      icon: <Trophy size={18} />,
+    },
+    {
+      name: "Location",
+      value: location.charAt(0).toUpperCase() + location.slice(1),
+      icon: <MapPin size={18} />,
+    },
+    {
+      name: "Date",
+      value: date?.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      }),
+      icon: <CalendarDays size={18} />,
+    },
+    {
+      name: "Time",
+      value: time,
+      icon: <Clock size={18} />,
+    },
+  ];
+
+  return (
+    <div className="flex flex-col lg:max-w-[750px] lg:min-w-[600px] w-full lg:mx-auto my-14 gap-10">
+      <p className="text-3xl font-semibold">Court Reservation</p>
+
+      <div className="flex px-6 py-4 rounded-lg bg-primary/5 gap-2 border border-primary">
+        <Check size={18} className="mt-1" />
+        <div className="flex flex-col">
+          <p className="text-primary text-lg font-semibold">
+            Reservation Confirmed!
+          </p>
+          <p>Your reservation has been successfully confirmed.</p>
+        </div>
+      </div>
+
+      <div className="flex flex-col p-6 rounded-lg bg-bgSecondary gap-8 border border-[#262528]">
+        <div>
+          <p className="text-2xl font-semibold">Booking Information</p>
+          <p className="text-[#7D7C82]">
+            Please review your reservation details before confirming
+          </p>
+        </div>
+        <div className="flex flex-col gap-4">
+          {summary.map((item, index) => (
+            <div key={index} className="flex gap-4 items-center">
+              <div className="w-10 h-10 bg-primary/5 text-primary rounded-full flex items-center justify-center">
+                {item.icon}
+              </div>
+
+              <div key={index} className="flex flex-col">
+                <p className="text-[#7D7C82]">{item.name}</p>
+                <p className="font-semibold">{item.value}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <button
+            onClick={() => {
+              window.location.reload();
+            }}
+            className="bg-black hover:bg-black/20 border border-[#262528] transition-all rounded-md py-3 text-white text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary"
+          >
+            Make another Reservation
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Courts() {
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const court_location = searchParams.get("location") || "";
-  const court_type = searchParams.get("type") || "";
+  const token = localStorage.getItem("token");
+  const user = useUserStore((state) => state.user);
+  const [type, setType] = useState("");
+  const [location, setLocation] = useState("");
+  const [date, setDate] = useState(null);
+  const [time, setTime] = useState(null);
+  const [option, setOption] = useState("Sport");
+  const [confirm, setConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
-  const [selectedTime, setSelectedTime] = useState(new Date());
-  const [showTimeDropdown, setShowTimeDropdown] = useState(false);
-  const [showLocationDropdown, setShowLocationDropdown] = useState(false);
-  const [courtLocation, setCourtLocation] = useState(court_location);
-  const [tempLocation, setTempLocation] = useState(courtLocation);
-  const navigate = useNavigate();
-
-  const locationRef = useRef(null);
-  const dateRef = useRef(null);
+  const options = ["Sport", "Location", "Date", "Time"];
+  const summary = [
+    {
+      name: "Sport",
+      value: type.charAt(0).toUpperCase() + type.slice(1),
+    },
+    {
+      name: "Location",
+      value: location.charAt(0).toUpperCase() + location.slice(1),
+    },
+    {
+      name: "Date",
+      value: date?.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      }),
+    },
+    {
+      name: "Time",
+      value: time,
+    },
+  ];
 
   const fetchCourts = async () => {
     const { data } = await axios.get(
-      `http://localhost:3000/api/courts?government=${courtLocation}&type=${court_type}`,
+      `http://localhost:3000/api/courts?government=${"Alexandria"}&type=${type}`,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -35,184 +395,208 @@ export default function Courts() {
     return data;
   };
 
-  const {
-    data: courts,
-    isLoading,
-    error,
-  } = useQuery(
-    ["courts", { court_location: courtLocation, court_type }],
-    fetchCourts,
+  const { data: courts } = useQuery(["courts", { type }], fetchCourts, {
+    enabled: !!type,
+  });
+
+  const fetchReservationByCourtId = async () => {
+    // Create a date that preserves the local date regardless of timezone
+    const localDate = new Date(date);
+    // Set time to noon to avoid timezone issues
+    localDate.setHours(12, 0, 0, 0);
+
+    const { data } = await axios.get(
+      `http://localhost:3000/api/reservations/court/${
+        courts.find((court) => court.name === location).id
+      }/date/${localDate.toISOString()}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+    return data;
+  };
+
+  const { data: courtById } = useQuery(
+    [
+      "courtById",
+      { id: courts?.find((court) => court.name === location)?.id, date },
+    ],
+    fetchReservationByCourtId,
     {
-      enabled: !!courtLocation && !!court_type,
+      enabled: !!location && !!date && !!courts,
     }
   );
 
-  const handleLocationSelect = (governorate) => {
-    setTempLocation(governorate);
-    setShowLocationDropdown(false);
-  };
+  const componentRender = () => {
+    switch (option) {
+      case "Sport":
+        return <Sport type={type} setType={setType} />;
+      case "Location":
+        return (
+          <Location
+            location={location}
+            setLocation={setLocation}
+            courts={courts}
+          />
+        );
 
-  const handleSearch = () => {
-    setCourtLocation(tempLocation.toLowerCase());
-    navigate(
-      `/courts?location=${tempLocation.toLowerCase()}&type=${court_type}`
-    );
-  };
+      case "Date":
+        return <ChooseDate date={date} setDate={setDate} />;
 
-  const clickOutside = (e) => {
-    if (
-      locationRef.current &&
-      !locationRef.current.contains(e.target) &&
-      dateRef.current &&
-      !dateRef.current.contains(e.target)
-    ) {
-      setShowLocationDropdown(false);
-      setShowTimeDropdown(false);
+      case "Time":
+        return (
+          <ChooseTime time={time} setTime={setTime} courtById={courtById} />
+        );
+      default:
+        break;
     }
   };
 
-  useEffect(() => {
-    document.addEventListener("mousedown", clickOutside);
-    return () => {
-      document.removeEventListener("mousedown", clickOutside);
-    };
-  }, []);
+  const handleSubmit = (e) => {
+    setLoading(true);
+    e.preventDefault();
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error loading courts: {error.message}</div>;
+    // Create a date that preserves the local date regardless of timezone
+    const localDate = new Date(date);
+    // Set time to noon to avoid timezone issues
+    localDate.setHours(12, 0, 0, 0);
 
-  const padel_image = "/padel_court.webp";
-  const tennis_image = "/tennis_court.jpg";
-  const basketball_image = "/bball_court.jpg";
-  const football_image = "/football_court.jpg";
-
-  const governoratesOfEgypt = [
-    "Cairo",
-    "Alexandria",
-    "Giza",
-    "Mansoura",
-    "Tanta",
-    "Ismailia",
-    "Zagazig",
-    "Borg Elarab", // دولة
-  ];
+    axios
+      .post(
+        "http://localhost:3000/api/reservations",
+        {
+          user_id: user.id,
+          court_id: courts.find((court) => court.name === location).id,
+          price: courts.find((court) => court.name === location).price,
+          timeslot_start: time.split(" - ")[0],
+          timeslot_end: time.split(" - ")[1],
+          date_of_reservation: localDate.toISOString(),
+          with_coach: false,
+          with_tools: false,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      )
+      .then(() => {
+        setLoading(false);
+        setConfirm(false);
+        setSuccess(true);
+      })
+      .catch(() => {
+        setLoading(false);
+      });
+  };
 
   return (
-    <div className="bg-[#1E1E1E] min-h-screen">
+    <div className="min-h-screen">
       <Navbar />
-      <div className="lg:max-w-[1200px] lg:min-w-[1024px] w-full lg:mx-auto py-14 flex flex-col gap-10">
-        <div className="flex relative rounded-lg bg-[#1A1A1A] lg:w-[800px] lg:mx-auto px-14 h-52 items-center gap-10">
-          <div className="absolute bg-[#2c2c2c] rounded-full flex items-center justify-center text-white text-lg -top-5 left-1/2 transform -translate-x-1/2 px-4 py-2">
-            Book {court_type} Court
+      {confirm ? (
+        <Confirmation
+          type={type}
+          location={location}
+          date={date}
+          time={time}
+          loading={loading}
+          price={parseFloat(
+            courts.find((court) => court.name === location)?.price
+          ).toFixed(0)}
+          priceWithFees={
+            parseFloat(
+              courts.find((court) => court.name === location)?.price
+            ).toFixed(0) *
+              1 +
+            10
+          }
+          setConfirm={setConfirm}
+          handleSubmit={handleSubmit}
+        />
+      ) : success ? (
+        <Receipt
+          type={type}
+          location={location}
+          date={date}
+          time={time}
+          setSuccess={setSuccess}
+        />
+      ) : (
+        <div className="flex flex-col gap-10 lg:max-w-[1200px] lg:min-w-[1024px] w-full lg:mx-auto my-14">
+          <p className="text-3xl font-semibold">Court Reservation</p>
+          <div className="p-1 bg-[#262626] rounded-lg flex">
+            {options.map((o, index) => (
+              <button
+                onClick={() => setOption(o)}
+                key={index}
+                className={`flex-1 text-center py-2 transition-all ${
+                  o === option ? "bg-[#0c0a09] rounded-md" : ""
+                }`}
+              >
+                {o}
+              </button>
+            ))}
           </div>
-          <div className="flex flex-col w-full text-white gap-2">
-            <div className="flex items-center gap-2">
-              <CalendarDays size={18} />
-              <div className="flex">
-                Select Date <span className="text-primary">*</span>
-              </div>
-            </div>
-            <div ref={dateRef} className="relative w-full">
-              <input
-                type="text"
-                value={
-                  selectedTime
-                    ? selectedTime.toLocaleDateString()
-                    : new Date().toLocaleDateString()
-                }
-                onFocus={() => setShowTimeDropdown(true)}
-                className="bg-[#2c2c2c] rounded-md px-4 py-2 cursor-pointer w-full"
-                readOnly
-              />
-              {showTimeDropdown && (
-                <div className="absolute shadow-lg top-12 z-50">
-                  <DatePicker
-                    selected={selectedTime}
-                    onChange={(date) => {
-                      setSelectedTime(date);
-                    }}
-                    className="cursor-pointer custom-date-picker text-sm text-white w-fit"
-                    calendarClassName="custom-calendar"
-                    inline
-                  />
+          <div className="flex flex-col p-10 rounded-lg bg-bgSecondary gap-8 border border-[#262528]">
+            <p className="text-2xl font-semibold">Select a {option}</p>
+            {componentRender()}
+          </div>
+          <div className="flex flex-col p-10 rounded-lg bg-bgSecondary gap-8 border border-[#262528]">
+            <p className="text-2xl font-semibold">Reservation Summary</p>
+            <div className="grid grid-cols-2 gap-4">
+              {summary.map((item, index) => (
+                <div key={index} className="flex flex-col">
+                  <p className="text-[#7D7C82]">{item.name}</p>
+                  <p className="text-lg font-semibold">
+                    {item.value ? item.value : "Not Selected"}
+                  </p>
                 </div>
-              )}
+              ))}
             </div>
-          </div>
-          <div className="flex flex-col w-full text-white gap-2">
-            <div className="flex items-center gap-2">
-              <MapPin size={21} />
-              <div className="flex">
-                Select Location <span className="text-primary">*</span>
-              </div>
-            </div>
-            <div ref={locationRef} className="relative w-full">
-              <input
-                type="text"
-                value={tempLocation}
-                onChange={(e) => setTempLocation(e.target.value)}
-                className="bg-[#2c2c2c] rounded-md px-4 py-2 cursor-pointer w-full"
-                onFocus={() => setShowLocationDropdown(true)}
-              />
-              {showLocationDropdown && (
-                <div className="absolute rounded-md bg-[#2C2C2C] top-12 z-50">
-                  <div
-                    className="py-1 max-h-56 w-[230px] overflow-y-auto scrollbar-thin scrollbar-thumb-[#777777] scrollbar-track-[#2c2c2c]"
-                    role="menu"
-                    aria-orientation="vertical"
-                    aria-labelledby="options-menu"
-                  >
-                    {governoratesOfEgypt.map((governorate, index) => (
-                      <div
-                        key={index}
-                        className="block px-4 py-2 text-sm text-white hover:bg-[#212121] cursor-pointer z-30"
-                        onClick={() => handleLocationSelect(governorate)}
-                        role="menuitem"
-                      >
-                        {governorate}
-                      </div>
-                    ))}
+            {type && location && time && date && (
+              <div className="flex flex-col">
+                <div className="flex flex-col py-4 border-y border-[#262528]">
+                  <div className="flex items-center justify-between text-lg font-semibold">
+                    <p>Court fee</p>
+                    <p>
+                      {parseFloat(
+                        courts.find((court) => court.name === location)?.price
+                      ).toFixed(0)}{" "}
+                      EGP
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between text-[#7D7C82]">
+                    <p>Service fee</p>
+                    <p>10 EGP</p>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-          <button
-            className="absolute bg-primary hover:bg-primary/80 transition-all rounded-full flex items-center justify-center text-white -bottom-5 left-1/2 transform -translate-x-1/2 px-4 py-2 z-0"
-            onClick={handleSearch}
-          >
-            Search
-          </button>
-        </div>
-        <div className="grid grid-cols-3 gap-4">
-          {courts?.map((court) => (
-            <Link
-              to={`/reservation/${court.id}`}
-              key={court.id}
-              className="rounded-lg overflow-hidden shadow-lg bg-[#1A1A1A]"
-            >
-              <img
-                src={
-                  court.court_type === "padel"
-                    ? padel_image
-                    : court.court_type === "tennis"
-                    ? tennis_image
-                    : court.court_type === "basketball"
-                    ? basketball_image
-                    : football_image
-                }
-                alt={`${court.court_type} court`}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-4 text-white">
-                <h2 className="text-xl font-bold">{court.court_name}</h2>
-                <p>{court.court_address}</p>
-                <p>{court.court_price} EGP</p>
+                <div className="flex items-center justify-between text-lg font-semibold pt-2">
+                  <p>Total</p>
+                  <p>
+                    {parseFloat(
+                      courts.find((court) => court.name === location)?.price
+                    ).toFixed(0) *
+                      1 +
+                      10}{" "}
+                    EGP
+                  </p>
+                </div>
               </div>
-            </Link>
-          ))}
+            )}
+            <button
+              onClick={() => setConfirm(true)}
+              disabled={!type || !location || !time || !date}
+              className="bg-primary hover:bg-primary/80 transition-all rounded-md py-3 text-[#262528] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary"
+            >
+              {!type || !location || !time || !date
+                ? "Complete All Steps to Proceed"
+                : "Proceed to Confirmation"}
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

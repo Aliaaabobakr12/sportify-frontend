@@ -6,7 +6,8 @@ module.exports = {
     extend: {
       colors: {
         primary: "#27c6a9",
-        secondary: "#171717",
+        bgPrimary: "#0c0a09",
+        bgSecondary: "#1C1917",
       },
       backgroundImage: {
         bg: "url('../public/bg.jpg')",

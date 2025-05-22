@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapPin, ChevronDown, CalendarDays, ChevronUp } from "lucide-react";
 import { PiCourtBasketball } from "react-icons/pi";
@@ -126,7 +126,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="bg-gradient-to-r gradient-angle from-[#171717] to-[#2c2c2c] min-h-screen items-center flex flex-col z-0">
+    <div className="min-h-screen items-center flex flex-col z-0">
       <Navbar />
       <div className="flex flex-nowrap relative">
         <img
@@ -145,10 +145,9 @@ export default function Home() {
           className="w-1/3 h-[400px] object-cover"
         />
       </div>
-      <div className="bg-[#2c2c2c] w-[1000px] h-16 rounded-lg absolute bottom-60">
+      <div className="bg-[#1C1917] w-[1000px] h-16 rounded-lg absolute bottom-60">
         <div className="flex justify-between items-center h-full px-4">
           <div className="relative" ref={locationRef}>
-            {/* Location dropdown */}
             <div
               className="flex items-center gap-2 cursor-pointer"
               onClick={() => setShowLocationDropdown(!showLocationDropdown)}
@@ -179,9 +178,9 @@ export default function Home() {
               )}
             </div>
             {showLocationDropdown && (
-              <div className="absolute mt-1 w-56 rounded-md shadow-lg bg-[#2C2C2C] ring-1 ring-black ring-opacity-5 z-50">
+              <div className="absolute mt-1 w-56 rounded-md shadow-lg bg-[#1C1917] ring-1 ring-[#1C1917] ring-opacity-5 z-50">
                 <div
-                  className="py-1 max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-[#777777] scrollbar-track-[#2c2c2c]"
+                  className="py-1 max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-[#777777] scrollbar-track-[#1C1917]"
                   role="menu"
                   aria-orientation="vertical"
                   aria-labelledby="options-menu"
@@ -202,7 +201,6 @@ export default function Home() {
           </div>
 
           <div className="relative" ref={courtRef}>
-            {/* Court Type dropdown */}
             <div
               className="flex items-center gap-2 cursor-pointer"
               onClick={() => setShowCourtDropdown(!showCourtDropdown)}
@@ -233,9 +231,9 @@ export default function Home() {
               )}
             </div>
             {showCourtDropdown && (
-              <div className="absolute mt-1 w-56 rounded-md shadow-lg bg-[#2C2C2C] ring-1 ring-black ring-opacity-5 z-50">
+              <div className="absolute mt-1 w-56 rounded-md shadow-lg bg-[#1C1917] ring-1 ring-[#1C1917] ring-opacity-5 z-50">
                 <div
-                  className="py-1 max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-[#777777] scrollbar-track-[#2c2c2c]"
+                  className="py-1 max-h-40 overflow-y-auto scrollbar-thin scrollbar-thumb-[#777777] scrollbar-track-[#1C1917]"
                   role="menu"
                   aria-orientation="vertical"
                   aria-labelledby="options-menu"
@@ -256,7 +254,6 @@ export default function Home() {
           </div>
 
           <div className="relative" ref={timeRef}>
-            {/* Pickup Time date picker */}
             <div
               className="flex items-center gap-2 cursor-pointer"
               onClick={() => setShowTimeDropdown(!showTimeDropdown)}
@@ -302,8 +299,6 @@ export default function Home() {
               </div>
             )}
           </div>
-
-          {/* Search button */}
           <button
             className="flex items-center justify-center gap-3 bg-[#27c6a9] text-white px-3.5 py-1.5 rounded-md hover:bg-[#55dcbe] transition-all duration-300"
             onClick={getCourtsByQueries}
@@ -312,7 +307,7 @@ export default function Home() {
           </button>
         </div>
       </div>
-      <div className="absolute rounded-full size-28 left-16 bottom-24 bg-gradient-to-r gradient-angle from-[#171717] to-[#2c2c2c]"></div>
+      <div className="absolute rounded-full size-28 left-16 bottom-24 bg-[#1c1917]"></div>
       <Section_1 />
     </div>
   );

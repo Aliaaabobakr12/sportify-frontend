@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import useUserStore from "../store/user.store";
 import { FaUserEdit } from "react-icons/fa";
 import { IoLogOutOutline } from "react-icons/io5";
@@ -10,6 +10,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
   const [open, setOpen] = useState(false);
+  const { pathname } = useLocation();
 
   const token = localStorage.getItem("token");
   const userLogout = useUserStore((state) => state.logout);
@@ -17,7 +18,7 @@ export default function Navbar() {
 
   const links = [
     { name: "Home", path: "/" },
-    { name: "Reservation", path: "/reservation/:id" },
+    { name: "Reservation", path: "/reservation" },
     { name: "Contact Us", path: "/contact" },
   ];
 
@@ -46,16 +47,16 @@ export default function Navbar() {
       {/* Logo and Title */}
       <div className="flex items-center gap-2">
         <img src="/logo.png" alt="logo" className="h-8 w-8" />
-        <p className="text-xl font-semibold">Hagz</p>
+        <p className="text-xl font-semibold">Sportify</p>
       </div>
 
       {/* Navigation Links */}
-      <div className="flex text-white gap-20 text-sm font-semibold">
+      <div className="flex gap-20 text-sm font-semibold">
         {links.map((link, index) => (
           <Link
             key={index}
             to={link.path}
-            className="hover:text-[#55dcbe] transition-all duration-300"
+            className={`hover:text-primary transition-all duration-300 ${link.path === pathname && "text-primary"} `}
           >
             {link.name}
           </Link>
@@ -76,7 +77,7 @@ export default function Navbar() {
             }}
           >
             <div className="flex rounded-full bg-[#27c6a9] size-10 items-center justify-center text-xl font-semibold">
-              {user?.first_name[0]}
+              {user?.first_name.split("")[0]}
             </div>
             {user?.is_admin && (
               <button
