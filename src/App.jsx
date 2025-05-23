@@ -8,6 +8,8 @@ import Reservation from "./pages/Reservation";
 import NewCourt from "./pages/NewCourt";
 import "react-toastify/dist/ReactToastify.css";
 import { ToastContainer } from "react-toastify";
+import Profile from "./pages/Profile";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 export default function App() {
   return (
@@ -26,6 +28,14 @@ export default function App() {
           }
         />
         <Route path="/reservation/:id" element={<Reservation />} />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
         <Route path="*" element={<p>404</p>} />
 
         <Route
