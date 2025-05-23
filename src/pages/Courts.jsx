@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "react-query";
 import axios from "axios";
 import DatePicker from "react-datepicker";
@@ -6,7 +6,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { MapPin, Clock, CalendarDays, Info, Trophy, Check } from "lucide-react";
 import Navbar from "../components/Navbar";
 import useUserStore from "../store/user.store";
-import { useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 function Sport({ type, setType }) {
   const sports = [
@@ -43,8 +43,8 @@ function Sport({ type, setType }) {
           key={index}
           className={`rounded-lg overflow-hidden ${
             type === sport.value
-              ? "outline outline-primary"
-              : "hover:outline hover:outline-[#262528]"
+              ? "outline outline-2 outline-primary"
+              : "hover:outline outline-1 hover:outline-[#262528]"
           }`}
         >
           <img
@@ -61,8 +61,14 @@ function Sport({ type, setType }) {
   );
 }
 
-function Location({ location, setLocation, courts }) {
-  return (
+function Location({ type, location, setLocation, courts }) {
+  return type === "" ? (
+    <div className="flex flex-col gap-4">Please select a sport first..</div>
+  ) : courts?.length === 0 ? (
+    <div className="flex flex-col gap-4">
+      <p>No courts available for this sport.</p>
+    </div>
+  ) : (
     <div className="flex flex-col gap-4">
       {courts?.map((court, index) => (
         <button
@@ -93,10 +99,11 @@ function Location({ location, setLocation, courts }) {
 }
 
 function ChooseDate({ date, setDate }) {
+  console.log(date);
   return (
     <div className="flex flex-col w-full text-white gap-2 items-center">
       <DatePicker
-        selected={date || new Date()}
+        selected={date}
         onChange={(date) => {
           setDate(date);
         }}
@@ -129,7 +136,7 @@ function ChooseTime({ time, setTime, courtById }) {
     const formattedStart = `${start}:00`;
 
     return courtById.some(
-      (reservation) => reservation.start === formattedStart
+      (reservation) => reservation.start === formattedStart,
     );
   };
 
@@ -144,7 +151,7 @@ function ChooseTime({ time, setTime, courtById }) {
               if (!isReserved) setTime(t);
             }}
             disabled={isReserved}
-            className={`flex items-center justify-center gap-3 outline-1 outline py-3 rounded-md font-semibold ${
+            className={`flex items-center justify-center gap-3 outline-1 outline py-3 rounded-md ${
               isReserved
                 ? "bg-[#262626] text-[#7D7C82] cursor-not-allowed"
                 : time === t
@@ -267,8 +274,7 @@ function Confirmation({
   );
 }
 
-function Receipt({ type, location, date, time, setSuccess }) {
-  const navigate = useNavigate();
+function Receipt({ type, location, date, time }) {
   const summary = [
     {
       name: "Sport",
@@ -348,6 +354,7 @@ function Receipt({ type, location, date, time, setSuccess }) {
 }
 
 export default function Courts() {
+  const [searchparams] = useSearchParams();
   const token = localStorage.getItem("token");
   const user = useUserStore((state) => state.user);
   const [type, setType] = useState("");
@@ -358,6 +365,18 @@ export default function Courts() {
   const [confirm, setConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (searchparams.get("type")) {
+      setType(searchparams.get("type"));
+    }
+
+    if (searchparams.get("date")) {
+      const dateParam = searchparams.get("date");
+      const parsedDate = new Date(dateParam);
+      setDate(parsedDate);
+    }
+  }, [searchparams]);
 
   const options = ["Sport", "Location", "Date", "Time"];
   const summary = [
@@ -390,7 +409,7 @@ export default function Courts() {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      }
+      },
     );
     return data;
   };
@@ -413,7 +432,7 @@ export default function Courts() {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      }
+      },
     );
     return data;
   };
@@ -426,7 +445,7 @@ export default function Courts() {
     fetchReservationByCourtId,
     {
       enabled: !!location && !!date && !!courts,
-    }
+    },
   );
 
   const componentRender = () => {
@@ -436,6 +455,7 @@ export default function Courts() {
       case "Location":
         return (
           <Location
+            type={type}
             location={location}
             setLocation={setLocation}
             courts={courts}
@@ -480,7 +500,7 @@ export default function Courts() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       )
       .then(() => {
         setLoading(false);
@@ -503,11 +523,11 @@ export default function Courts() {
           time={time}
           loading={loading}
           price={parseFloat(
-            courts.find((court) => court.name === location)?.price
+            courts.find((court) => court.name === location)?.price,
           ).toFixed(0)}
           priceWithFees={
             parseFloat(
-              courts.find((court) => court.name === location)?.price
+              courts.find((court) => court.name === location)?.price,
             ).toFixed(0) *
               1 +
             10
@@ -562,7 +582,7 @@ export default function Courts() {
                     <p>Court fee</p>
                     <p>
                       {parseFloat(
-                        courts.find((court) => court.name === location)?.price
+                        courts.find((court) => court.name === location)?.price,
                       ).toFixed(0)}{" "}
                       EGP
                     </p>
@@ -576,7 +596,7 @@ export default function Courts() {
                   <p>Total</p>
                   <p>
                     {parseFloat(
-                      courts.find((court) => court.name === location)?.price
+                      courts.find((court) => court.name === location)?.price,
                     ).toFixed(0) *
                       1 +
                       10}{" "}

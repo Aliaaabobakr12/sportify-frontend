@@ -27,7 +27,7 @@ export default function Login() {
       try {
         const response = await axios.post(
           "http://localhost:3000/api/auth/login",
-          values
+          values,
         );
         const authToken = response.data.token;
         localStorage.setItem("token", authToken);
@@ -39,7 +39,7 @@ export default function Login() {
               headers: {
                 Authorization: `Bearer ${authToken}`,
               },
-            }
+            },
           );
           setUser(userResponse.data);
         }
@@ -63,15 +63,17 @@ export default function Login() {
   }
 
   return (
-    <div className="h-screen flex flex-col justify-center items-center gap-4 bg-secondary">
-      <img src="/logo.png" alt="logo" className="w-32" />
-      <div className="flex flex-col gap-2 items-center">
-        <p className="text-5xl font-bold text-white">Welcome Back!</p>
-        <p className="text-white text-sm">
-          Enter your credentials to access your account
-        </p>
-      </div>
-      <form onSubmit={handleSubmit} className="flex flex-col w-[35%] gap-5">
+    <div className="flex min-h-screen items-center justify-center">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col w-[500px] gap-5 items-center p-10 bg-bgSecondary border border-[#262528] rounded-lg"
+      >
+        <div className="flex flex-col gap-2 items-center">
+          <p className="text-3xl font-semibold text-white">Sign in</p>
+          <p className="text-[#7D7C82] text-sm">
+            Enter your email and password to access your account
+          </p>
+        </div>
         <FormInput
           name="email"
           type="text"
@@ -93,7 +95,7 @@ export default function Login() {
         {loading ? (
           <button
             disabled
-            className="rounded cursor-not-allowed flex items-center justify-center bg-primary px-8 py-2 text-white transition h-10"
+            className="rounded cursor-not-allowed flex items-center justify-center bg-primary w-full py-2 text-white transition h-10"
           >
             <ReactLoading
               type="bubbles"
@@ -105,15 +107,16 @@ export default function Login() {
         ) : (
           <button
             type="submit"
-            className="rounded bg-primary px-8 py-2 text-white transition hover:bg-primary/80 h-10"
+            className="rounded bg-primary w-full py-2 text-sm font-medium text-[#262528] transition hover:bg-primary/80 h-10"
           >
             Login
           </button>
         )}
+
         <div className="flex gap-1">
-          <p className="text-sm text-white">{"Don't have an account?"}</p>
-          <Link to="/register" className="text-sm underline text-primary">
-            Register here
+          <p className="text-sm text-[#7D7C82]">Don't have an account?</p>
+          <Link className="text-sm underline text-[#27c6a9]" to={"/register"}>
+            Register
           </Link>
         </div>
       </form>

@@ -31,7 +31,7 @@ export default function Register() {
       try {
         const response = await axios.post(
           "http://localhost:3000/api/auth/register",
-          values
+          values,
         );
         const authToken = response.data.token;
         localStorage.setItem("token", authToken);
@@ -43,7 +43,7 @@ export default function Register() {
               headers: {
                 Authorization: `Bearer ${authToken}`,
               },
-            }
+            },
           );
           setUser(userResponse.data);
         }
@@ -67,113 +67,111 @@ export default function Register() {
   }
 
   return (
-    <div className="h-screen bg-[#171717] flex">
-      <div className="flex flex-col w-[50%] justify-center items-center">
-        <form onSubmit={handleSubmit} className="flex flex-col w-[70%] gap-5">
-          <div className="flex flex-col gap-2">
-            <p className="text-5xl font-bold text-white">Create new account</p>
-            <p className="text-white text-sm">
-              Reserve your spot on the best sports courts in town.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <FormInput
-              name="first_name"
-              type="text"
-              placeHolder="First name"
-              value={values.first_name}
-              onChange={handleChange}
-              error={errors.first_name}
-              touched={touched.first_name}
-            />
-            <FormInput
-              name="last_name"
-              type="text"
-              placeHolder="Last name"
-              value={values.last_name}
-              onChange={handleChange}
-              error={errors.last_name}
-              touched={touched.last_name}
-            />
-          </div>
+    <div className="flex min-h-screen items-center justify-center">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col w-[500px] gap-5 items-center p-10 bg-bgSecondary border border-[#262528] rounded-lg"
+      >
+        <div className="flex flex-col gap-2 items-center">
+          <p className="text-3xl font-semibold text-white">Create an account</p>
+          <p className="text-[#7D7C82] text-sm">
+            Enter your information to create an account
+          </p>
+        </div>
+        <div className="flex gap-2">
           <FormInput
-            name="email"
+            name="first_name"
             type="text"
-            placeHolder="Email"
-            value={values.email}
+            placeHolder="First name"
+            value={values.first_name}
             onChange={handleChange}
-            error={errors.email}
-            touched={touched.email}
+            error={errors.first_name}
+            touched={touched.first_name}
           />
           <FormInput
-            name="password"
-            type="password"
-            placeHolder="Password"
-            value={values.password}
-            onChange={handleChange}
-            error={errors.password}
-            touched={touched.password}
-          />
-          <FormInput
-            name="confirm_password"
-            type="password"
-            placeHolder="Confirm Password"
-            value={values.confirm_password}
-            onChange={handleChange}
-            error={errors.confirm_password}
-            touched={touched.confirm_password}
-          />
-          <FormInput
-            name="phone"
+            name="last_name"
             type="text"
-            placeHolder="Phone Number"
-            value={values.phone}
+            placeHolder="Last name"
+            value={values.last_name}
             onChange={handleChange}
-            error={errors.phone}
-            touched={touched.phone}
+            error={errors.last_name}
+            touched={touched.last_name}
           />
-          <FormInput
-            name="address"
-            type="text"
-            placeHolder="Address"
-            value={values.address}
-            onChange={handleChange}
-            error={errors.address}
-            touched={touched.address}
-          />
+        </div>
+        <FormInput
+          name="email"
+          type="text"
+          placeHolder="Email"
+          value={values.email}
+          onChange={handleChange}
+          error={errors.email}
+          touched={touched.email}
+        />
+        <FormInput
+          name="password"
+          type="password"
+          placeHolder="Password"
+          value={values.password}
+          onChange={handleChange}
+          error={errors.password}
+          touched={touched.password}
+        />
+        <FormInput
+          name="confirm_password"
+          type="password"
+          placeHolder="Confirm Password"
+          value={values.confirm_password}
+          onChange={handleChange}
+          error={errors.confirm_password}
+          touched={touched.confirm_password}
+        />
+        <FormInput
+          name="phone"
+          type="text"
+          placeHolder="Phone Number"
+          value={values.phone}
+          onChange={handleChange}
+          error={errors.phone}
+          touched={touched.phone}
+        />
+        <FormInput
+          name="address"
+          type="text"
+          placeHolder="Address"
+          value={values.address}
+          onChange={handleChange}
+          error={errors.address}
+          touched={touched.address}
+        />
 
-          {loading ? (
-            <button
-              disabled
-              className="rounded cursor-not-allowed flex items-center justify-center bg-primary px-8 py-2 text-white transition h-10"
-            >
-              <ReactLoading
-                type="bubbles"
-                color="#ffffff"
-                height={25}
-                width={25}
-              />
-            </button>
-          ) : (
-            <button
-              type="submit"
-              className="rounded bg-primary px-8 py-2 text-white transition hover:bg-primary/80 h-10"
-            >
-              Register
-            </button>
-          )}
+        {loading ? (
+          <button
+            disabled
+            className="rounded cursor-not-allowed flex items-center justify-center bg-primary w-full py-2 text-white transition h-10"
+          >
+            <ReactLoading
+              type="bubbles"
+              color="#ffffff"
+              height={25}
+              width={25}
+            />
+          </button>
+        ) : (
+          <button
+            type="submit"
+            className="rounded bg-primary w-full py-2 text-sm font-medium text-[#262528] transition hover:bg-primary/80 h-10"
+          >
+            Register
+          </button>
+        )}
 
-          <div className="flex gap-1">
-            <p className="text-sm text-white">Already a member?</p>
-            <Link className="text-sm underline text-[#27c6a9]" to={"/login"}>
-              Login
-            </Link>
-          </div>
-        </form>
-      </div>
-      <div className="w-[50%] pr-10 py-10">
-        <img src="/bg.jpg" alt="register" className="rounded-md h-full" />
-      </div>
+        <div className="flex gap-1">
+          <p className="text-sm text-[#7D7C82]">Already a member?</p>
+          <Link className="text-sm underline text-[#27c6a9]" to={"/login"}>
+            Login
+          </Link>
+        </div>
+      </form>
     </div>
   );
 }
